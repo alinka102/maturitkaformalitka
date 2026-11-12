@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Počítačové Siete - Maturita</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome ikony -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Vlastné CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200 flex flex-col">
+
+    <!-- Hlavička -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 no-print shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-brand-500 text-white p-2.5 rounded-xl shadow-md flex items-center justify-center">
+                    <i class="fa-solid fa-network-wired text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Počítačové Siete</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Maturitné okruhy a vypracovania</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button onclick="openModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition shadow-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="hidden sm:inline">Pridať úlohu</span>
+                </button>
+                
+                <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition" title="Prepnúť režim">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+
+                <div class="relative">
+                    <button onclick="toggleDropdown()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition" title="Možnosti">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div id="settings-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1 z-40">
+                        <button onclick="exportData()" class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center space-x-2">
+                            <i class="fa-solid fa-download w-5 text-slate-400"></i><span>Exportovať dáta (JSON)</span>
+                        </button>
+                        <label class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center space-x-2 cursor-pointer">
+                            <i class="fa-solid fa-upload w-5 text-slate-400"></i><span>Importovať dáta</span>
+                            <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
+                        </label>
+                        <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
+                        <button onclick="window.print()" class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center space-x-2">
+                            <i class="fa-solid fa-print w-5 text-slate-400"></i><span>Tlačiť prehľad</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hlavný obsah -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+        
+        <!-- Štatistiky -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8 no-print">
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center space-x-4">
+                <div class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-3 rounded-xl">
+                    <i class="fa-solid fa-layer-group text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-slate-900 dark:text-white" id="stat-total">0</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Spolu úloh</div>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center space-x-4">
+                <div class="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 p-3 rounded-xl">
+                    <i class="fa-solid fa-circle-check text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-slate-900 dark:text-white" id="stat-done">0</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Hotové</div>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center space-x-4">
+                <div class="bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 p-3 rounded-xl">
+                    <i class="fa-solid fa-clock text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-slate-900 dark:text-white" id="stat-progress">0</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Rozpracované</div>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center space-x-4">
+                <div class="bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 p-3 rounded-xl">
+                    <i class="fa-solid fa-arrows-rotate text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-slate-900 dark:text-white" id="stat-repeat">0</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Na zopakovanie</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vyhľadávanie a filter -->
+        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-8 no-print flex flex-col sm:flex-row gap-4">
+            <div class="relative flex-grow">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input type="text" id="search-input" oninput="filterTasks()" placeholder="Hľadať tému, protokol, IP adresu..." 
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white">
+            </div>
+
+            <div class="sm:w-64">
+                <select id="filter-status" onchange="filterTasks()" 
+                    class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white">
+                    <option value="">Všetky stavy</option>
+                    <option value="Rozpracované">Rozpracované</option>
+                    <option value="Hotovo">Hotovo</option>
+                    <option value="Na zopakovanie">Na zopakovanie</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Zoznam úloh -->
+        <div id="tasks-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+        <!-- Prázdny stav -->
+        <div id="empty-state" class="hidden text-center py-16">
+            <div class="bg-slate-100 dark:bg-slate-800 text-slate-400 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-network-wired"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-300">Žiadne okruhy z Počítačových sietí</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Pridaj svoju prvú vypracovanú maturitnú otázku zo sietí.</p>
+            <button onclick="openModal()" class="mt-4 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition shadow-sm inline-flex items-center space-x-2">
+                <i class="fa-solid fa-plus"></i>
+                <span>Pridať prvé vypracovanie</span>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Modálne okno (Formulár) -->
+    <div id="task-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-700">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                <h3 id="modal-title" class="text-lg font-bold text-slate-900 dark:text-white">Nová úloha - Počítačové siete</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="task-form" onsubmit="saveTask(event)" class="p-6 space-y-4">
+                <input type="hidden" id="task-id">
+                
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-1">Stav vypracovania *</label>
+                    <select id="task-status" required class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 dark:text-white">
+                        <option value="Rozpracované">Rozpracované</option>
+                        <option value="Hotovo">Hotovo</option>
+                        <option value="Na zopakovanie">Na zopakovanie</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-1">Názov témy / okruhu *</label>
+                        <input type="text" id="task-title" required placeholder="napr. OSI model a TCP/IP vrstvy" 
+                            class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-1">Číslo otázky</label>
+                        <input type="text" id="task-number" placeholder="napr. 01" 
+                            class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 dark:text-white">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-1">Tagy (oddelené čiarkou)</label>
+                    <input type="text" id="task-tags" placeholder="napr. IPv4, Subnetting, Router, VLAN" 
+                        class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 dark:text-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-1">Vypracovaný obsah / poznámky *</label>
+                    <textarea id="task-content" required rows="7" placeholder="Sem vlož text vypracovania, príkazy, definície..." 
+                        class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 dark:text-white font-mono"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                        Zrušiť
+                    </button>
+                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2 rounded-xl text-sm font-medium transition shadow-sm">
+                        Uložiť tému
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modálne okno (Detail) -->
+    <div id="detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-700">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold px-2.5 py-1 bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg inline-block mb-1">Počítačové siete</span>
+                    <h3 id="detail-title" class="text-xl font-bold text-slate-900 dark:text-white">Názov témy</h3>
+                </div>
+                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pb-3 border-b border-slate-100 dark:border-slate-700">
+                    <div id="detail-number-wrapper">Otázka č. <span id="detail-number" class="font-semibold text-slate-700 dark:text-slate-300"></span></div>
+                    <div id="detail-status-badge"></div>
+                </div>
+                <div id="detail-tags-container" class="flex flex-wrap gap-1.5"></div>
+                <div class="mt-4">
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Vypracovanie:</h4>
+                    <div id="detail-content" class="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl text-sm text-slate-700 dark:text-slate-300 font-mono whitespace-pre-wrap leading-relaxed"></div>
+                </div>
+            </div>
+            <div class="p-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700 flex items-center justify-end space-x-3">
+                <button onclick="window.print()" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition inline-flex items-center space-x-2">
+                    <i class="fa-solid fa-print"></i><span>Tlačiť</span>
+                </button>
+                <button onclick="closeDetailModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition shadow-sm">
+                    Zavrieť
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vlastný JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
